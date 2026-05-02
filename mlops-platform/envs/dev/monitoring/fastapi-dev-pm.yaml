@@ -12,7 +12,7 @@ spec:
     matchLabels:
       app: fastapi-dev
   podMetricsEndpoints:
-    - port: http          # 숫자 대신 이름 사용
+    - port: http          # Use the named port instead of a number
       path: /metrics
       interval: 15s
       scheme: http

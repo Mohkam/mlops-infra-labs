@@ -14,7 +14,7 @@ spec:
     path: ops/storage/fastapi-logs/prod
   syncPolicy:
     automated:
-      prune: false                  # ❗ PV prune disabled for prod
+      prune: false                  # ❗ PV Safety: Prune disabled for prod
       selfHeal: true
     syncOptions:
       - CreateNamespace=true

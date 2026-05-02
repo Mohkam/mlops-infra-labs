@@ -5,7 +5,7 @@ airflow:
     airflow:
       tag: v1.3.0
 
-  # 기준값: 환경별 airflow 도메인
+  # Baseline value: environment-specific Airflow domain
   global:
     airflowHost: airflow.local  # ⬅️ Default value for all host-related settings
 
@@ -20,23 +20,23 @@ airflow:
       rev: HEAD
       sshKeySecret: airflow-git-ssh-secret
 
-  # Airflow config 직접 정의 (공식 Helm Chart의 config 블록)
+  # Define Airflow config directly (the Helm chart config block)
   config:
     AIRFLOW__WEBSERVER__WEB_SERVER_BASE_URL:
-      value: "http://airflow.local"  # ⬅️ global.airflowHost 기준값
+      value: "http://airflow.local"  # ⬅️Baseline value for global.airflowHost
 
   apiSecretKeySecretName: airflow-dev-api-secret-key
   jwtSecretName: airflow-dev-jwt-secret
   apiSecretKey: ~
   jwtSecret: ~
 
-  # Fernet Key / Metadata DB related secrets
+  # Fernet key / metadata DB related secrets
   fernetKeySecretName: airflow-fernet-dev-secret
 
   data:
     metadataSecretName: airflow-db-dev-secret
 
-  # Scheduler settings (Anchor definition)
+  # Scheduler settings (anchor definition)
   scheduler: &dev_scheduler
     env:
       - name: RELOAD_SECRET_TOKEN
@@ -80,7 +80,7 @@ airflow:
         mountPath: /home/airflow/.aws
         readOnly: true
 
-  # Workers / DAG Processor 에 동일 anchor 사용
+  # Use the same anchor for Workers / DAG Processor
   workers: *dev_scheduler
   dagProcessor: *dev_scheduler
 

@@ -46,16 +46,16 @@ def register_startup_event(app: FastAPI):
                 }
 
                 loaded.append(alias)
-                logger.info(f"✅ 모델 로딩 성공: alias={alias}, version={version_info.version}")
+                logger.info(f"✅ Model loaded successfully: alias={alias}, version={version_info.version}")
             except Exception as e:
-                logger.warning(f"⚠️ 모델 로딩 실패: alias={alias}, 이유={e}")
-                send_slack_alert(f"❌ [FastAPI] 모델 alias={alias} 로딩 실패: {e}")
+                logger.warning(f"⚠️ Model loading failed: alias={alias}, reason={e}")
+                send_slack_alert(f"❌ [FastAPI] Failed to load model alias={alias}: {e}")
 
         if not loaded:
-            logger.error("🔥 [FastAPI] 모델 전부 로딩 실패")
-            send_slack_alert("🔥 [FastAPI] 전 모델 로딩 실패")
-            # 필요시 종료 유지하려면 다음 라인 주석 해제
+            logger.error("🔥 [FastAPI] Failed to load all models")
+            send_slack_alert("🔥 [FastAPI] Failed to load all models")
+            # Uncomment the next line if you want to keep the process alive on failure
             # sys.exit(1)
         else:
-            logger.info(f"✅ 초기 로딩된 모델: {loaded}")
-            send_slack_alert(f"✅ [FastAPI] 모델 초기 로딩 완료: {loaded}")
+            logger.info(f"Initially loaded models: {loaded}")
+            send_slack_alert(f"[FastAPI] Initial model loading complete: {loaded}")

@@ -1,7 +1,7 @@
-# === 모드 고정 ===
+# === Fixed mode ===
 deploymentMode: SingleBinary
 
-# === 단일 바이너리만 1개 ===
+# === Single binary only ===
 singleBinary:
   replicas: 1
   persistence:
@@ -14,7 +14,7 @@ singleBinary:
     fsGroup: 10001
     fsGroupChangePolicy: OnRootMismatch
 
-# === Simple Scalable 타깃 전부 비활성 + replicas=0 못박기 ===
+# === Disable all Simple Scalable targets and pin replicas=0 ===
 read:
   enabled: false
   replicas: 0

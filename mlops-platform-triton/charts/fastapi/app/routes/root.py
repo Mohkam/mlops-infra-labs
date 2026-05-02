@@ -19,7 +19,7 @@ def root(request: Request):
     endpoints.append("/health")
 
     return {
-        "message": "FastAPI 동작 중",
+        "message": "✅ FastAPI is running",
         "loaded_variants": variants,
         "available_endpoints": endpoints
     }

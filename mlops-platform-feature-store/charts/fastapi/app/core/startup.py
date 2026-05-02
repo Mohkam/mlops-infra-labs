@@ -13,14 +13,14 @@ def register_startup_event(app: FastAPI):
         model_name = os.environ.get("MODEL_NAME")
 
         if not tracking_uri or not model_name:
-            logger.error("❌ 환경변수 누락: MLFLOW_TRACKING_URI / MODEL_NAME")
-            send_slack_alert("❌ [FastAPI] 환경변수 누락으로 모델 로딩 실패")
+            logger.error("❌ Missing environment variables: MLFLOW_TRACKING_URI / MODEL_NAME")
+            send_slack_alert("❌ [FastAPI] Model loading failed due to missing environment variables")
             app.state.models = {}
-            # ✅ 모델이 없어도 /metrics는 노출되게 두는 편이 운영상 유리
+            #✅  It is operationally preferable to expose /metrics even when no model is loaded
             try:
                 Instrumentator().instrument(app).expose(app, endpoint="/metrics", include_in_schema=False)
             except Exception as e:
-                logger.warning(f"⚠️ /metrics expose 실패(환경변수 누락 케이스): {e}")
+                logger.warning(f"⚠️ Failed to expose /metrics (missing environment variables case): {e}")
             return
 
         app.state.models = {}
@@ -46,16 +46,16 @@ def register_startup_event(app: FastAPI):
                 }
 
                 loaded.append(alias)
-                logger.info(f"✅ 모델 로딩 성공: alias={alias}, version={version_info.version}")
+                logger.info(f"✅ Model loaded successfully: alias={alias}, version={version_info.version}")
             except Exception as e:
-                logger.warning(f"⚠️ 모델 로딩 실패: alias={alias}, 이유={e}")
-                send_slack_alert(f"❌ [FastAPI] 모델 alias={alias} 로딩 실패: {e}")
+                logger.warning(f"⚠️ Model loading failed: alias={alias}, reason={e}")
+                send_slack_alert(f"❌ [FastAPI] Failed to load model alias={alias}: {e}")
 
         if not loaded:
-            logger.error("🔥 [FastAPI] 모델 전부 로딩 실패")
-            send_slack_alert("🔥 [FastAPI] 전 모델 로딩 실패")
-            # 필요시 종료 유지하려면 다음 라인 주석 해제
+            logger.error("🔥 [FastAPI] Failed to load all models")
+            send_slack_alert("🔥 [FastAPI] Failed to load all models")
+            # Uncomment the next line if you want to keep the process alive on failure
             # sys.exit(1)
         else:
-            logger.info(f"✅ 초기 로딩된 모델: {loaded}")
-            send_slack_alert(f"✅ [FastAPI] 모델 초기 로딩 완료: {loaded}")
+            logger.info(f"✅ Initially loaded models: {loaded}")
+            send_slack_alert(f"✅ [FastAPI] Initial model loading complete: {loaded}")

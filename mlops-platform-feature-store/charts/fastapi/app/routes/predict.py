@@ -17,16 +17,16 @@ class PredictInput(BaseModel):
 async def ab_predict(request: Request, input_data: PredictInput, x_client_id: str = Header(...)):
     models = getattr(request.app.state, "models", {})
     if not models:
-        raise HTTPException(status_code=503, detail="모델 미로딩 상태")
+        raise HTTPException(status_code=503, detail="❌ Model not loaded")
 
     alias = get_alias(x_client_id)
     if alias not in models:
-        raise HTTPException(status_code=503, detail=f"모델 {alias} 미로딩 상태")
+        raise HTTPException(status_code=503, detail=f"❌ Model {alias} not loaded")
 
     try:
         df = pd.DataFrame(input_data.data)
         prediction = models[alias]["model"].predict(df)
-        logger.info(f"🔮 예측 성공: mode={settings.alias_selection_mode}, alias={alias}, client_id={x_client_id}")
+        logger.info(f"✅ Prediction succeeded: mode={settings.alias_selection_mode}, alias={alias}, client_id={x_client_id}")
         return {
             "variant": alias,
             "mode": settings.alias_selection_mode,
@@ -34,25 +34,25 @@ async def ab_predict(request: Request, input_data: PredictInput, x_client_id: st
             "prediction": prediction.tolist()
         }
     except Exception as e:
-        logger.exception("❌ 예측 실패")
-        send_slack_alert(f"❌ 예측 실패 (alias={alias}): {e}")
-        raise HTTPException(status_code=500, detail=f"예측 실패: {e}")
+        logger.exception("❌ Prediction failed")
+        send_slack_alert(f"❌ [FastAPI] Prediction failed (alias={alias}): {e}")
+        raise HTTPException(status_code=500, detail=f"❌ Prediction failed: {e}")
 
 @router.post("/variant/{alias}/predict")
 async def predict_by_alias(alias: str, input_data: PredictInput, request: Request):
     models = getattr(request.app.state, "models", {})
     if alias not in models:
-        raise HTTPException(status_code=503, detail=f"모델 {alias} 미로딩 상태")
+        raise HTTPException(status_code=503, detail=f"⚠️ Model {alias} not loaded")
 
     try:
         df = pd.DataFrame(input_data.data)
         prediction = models[alias]["model"].predict(df)
-        logger.info(f"🔮 수동 예측 성공: alias={alias}")
+        logger.info(f"✅ Manual prediction succeeded: alias={alias}")
         return {
             "variant": alias,
             "prediction": prediction.tolist()
         }
     except Exception as e:
-        logger.exception("❌ 예측 실패")
-        send_slack_alert(f"❌ [FastAPI] 예측 실패 (alias={alias}): {e}")
-        raise HTTPException(status_code=500, detail=f"예측 실패: {e}")
+        logger.exception("❌ Manual prediction failed")
+        send_slack_alert(f"❌ [FastAPI] Manual prediction failed (alias={alias}): {e}")
+        raise HTTPException(status_code=500, detail=f"❌ Manual prediction failed: {e}")

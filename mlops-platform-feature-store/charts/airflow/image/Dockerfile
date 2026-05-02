@@ -1,10 +1,10 @@
-# Airflow 3.0.2 with Python 3.12 공식 이미지 기반
+# Based on the official Airflow 3.0.2 with Python 3.12 image
 FROM apache/airflow:3.0.2-python3.12
 
-# requirements 복사
+# Copy requirements
 COPY requirements.txt requirements.txt
 
-# airflow 권한으로 pip install
+# Install packages as the airflow user
 USER airflow
 
 RUN pip install --no-cache-dir -r requirements.txt

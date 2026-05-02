@@ -23,7 +23,7 @@ spec:
             backend:
               service:
                 name: {{ $.Values.service.name }}
-                # Route to a non-existent port → external 502/404
+                # Route to a non-existent port, resulting in external 502/404
                 port:
                   number: 65535
 {{- end }}

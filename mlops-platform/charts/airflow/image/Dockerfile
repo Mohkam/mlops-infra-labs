@@ -4,7 +4,7 @@ FROM apache/airflow:3.0.2-python3.12
 # Copy requirements
 COPY requirements.txt /tmp/requirements.txt
 
-# airflow 권한으로 pip install
+# Install packages as the airflow user
 USER airflow
 
 # pip install as airflow user

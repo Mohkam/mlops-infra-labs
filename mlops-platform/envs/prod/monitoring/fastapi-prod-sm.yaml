@@ -11,7 +11,7 @@ spec:
     matchNames: ["fastapi-prod"]
   selector:
     matchLabels:
-      app: fastapi-prod            # ← 서비스 라벨과 동일
+      app: fastapi-prod            # Same as the service label
   endpoints:
     - port: http
       path: /metrics

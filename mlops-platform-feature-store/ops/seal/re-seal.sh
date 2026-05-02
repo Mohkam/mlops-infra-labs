@@ -27,14 +27,14 @@ kubeseal --controller-namespace "$SS_NS" --controller-name "$SS_CTL" --fetch-cer
 FPR=$(openssl x509 -in "$CERT" -noout -fingerprint -sha256 | sed 's/^.*=//')
 echo "[info] controller fingerprint: $FPR"
 echo "[info] ENV=$ENV DRY_RUN=$DRY_RUN INCLUDE_BOOTSTRAP=$INCLUDE_BOOTSTRAP"
-[[ -d "$TARGET_DIR" ]] || echo "⚠️  $TARGET_DIR directory does not exist (continuing)."
+[[ -d "$TARGET_DIR" ]] || echo "⚠️ Warn: $TARGET_DIR directory does not exist (continuing)."
 
 mapfile -d '' FILES < <(find "$TARGET_DIR" -type f -name '*.yaml' -print0 2>/dev/null || true)
 echo "[info] sealed files to process: ${#FILES[@]}"
 
 reseal_file () {
   local f="$1"
-  # name/ns 추출
+  # Extract name/ns
   local name ns scope comp
   name=$(yq -r '.metadata.name // .spec.template.metadata.name' "$f")
   ns=$(yq -r '.metadata.namespace // .spec.template.metadata.namespace' "$f")
@@ -43,23 +43,23 @@ reseal_file () {
   else
     scope=""
   fi
-  # ns 추론 (envs/<env>/sealed-secrets/<comp>/...)
+  # Infer namespace (envs/<env>/sealed-secrets/<comp>/...)
   if [[ -z "${ns:-}" || "$ns" == "null" ]]; then
     if [[ "$f" =~ /sealed-secrets/([^/]+)/ ]]; then
       comp="${BASH_REMATCH[1]}"
       ns="${comp}-${ENV}"
-      echo "[hint] ns inferred: $f → $ns"
+      echo "[hint] ns inferred: $f -> $ns"
     else
-      echo "⚠️  $f: Unable to find namespace, skipping."; return 0
+      echo "⚠️ Warn: $f: Unable to find namespace, skipping."; return 0
     fi
   fi
   if [[ -z "${name:-}" || "$name" == "null" ]]; then
-    echo "⚠️  $f: metadata.name 없음. 건너뜀."; return 0
+    echo "⚠️ Warn: $f: metadata.name missing. Skipping."; return 0
   fi
   echo "[reseal] ns=$ns name=$name file=$f scope=${scope:-default}"
 
   if ! kubectl -n "$ns" get secret "$name" >/dev/null 2>&1; then
-    echo "⚠️  $ns/$name: 클러스터 Secret 없음 → 재발급/평문 필요. 건너뜀."
+    echo "⚠️ Warn: $ns/$name: Cluster Secret missing -> reissue/plaintext required. Skipping."
     return 0
   fi
 
@@ -86,12 +86,12 @@ for f in "${FILES[@]}"; do
   reseal_file "$f"
 done
 
-# 2) (옵션) notifications bootstrap 포함
+# 2) (Optional) include notifications bootstrap
 if [[ "$INCLUDE_BOOTSTRAP" == "1" ]]; then
   BOOT_DIR="$ROOT/bootstrap/notifications"
-  PLAIN="$BOOT_DIR/argocd-notifications-secret.yaml"   # 있으면 평문
+  PLAIN="$BOOT_DIR/argocd-notifications-secret.yaml"   # plaintext if present
   SEALED="$BOOT_DIR/secret-sealed.yaml"
-  echo "[info] INCLUDE_BOOTSTRAP=1 → $SEALED 갱신 시도"
+  echo "[info] INCLUDE_BOOTSTRAP=1 -> attempting to update $SEALED"
   if [[ "$DRY_RUN" != "1" ]]; then
     if [[ -f "$PLAIN" ]]; then
       kubeseal --controller-namespace "$SS_NS" --controller-name "$SS_CTL" \
@@ -101,7 +101,7 @@ if [[ "$INCLUDE_BOOTSTRAP" == "1" ]]; then
         | kubeseal --controller-namespace "$SS_NS" --controller-name "$SS_CTL" \
                    --format yaml > "$SEALED"
     else
-      echo "⚠️  argocd/argocd-notifications-secret 없음. bootstrap 건너뜀."
+      echo "⚠️ Warn: argocd/argocd-notifications-secret missing. Skipping bootstrap."
     fi
   fi
   [[ "$SHOW_DIFF" == "1" ]] && git --no-pager diff -- "$SEALED" || true
@@ -113,5 +113,5 @@ if [[ "$DRY_RUN" != "1" ]]; then
   git commit -m "re-seal($ENV): sealed secrets with current controller key [$FPR]" || true
 fi
 
-echo "✅ done. (ENV=$ENV, DRY_RUN=$DRY_RUN, INCLUDE_BOOTSTRAP=$INCLUDE_BOOTSTRAP)"
-echo "→ 필요 시: git push"
+echo "✅ DONE. (ENV=$ENV, DRY_RUN=$DRY_RUN, INCLUDE_BOOTSTRAP=$INCLUDE_BOOTSTRAP)"
+echo "-> If needed: git push"

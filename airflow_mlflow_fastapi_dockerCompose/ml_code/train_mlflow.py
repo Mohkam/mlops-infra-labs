@@ -7,9 +7,9 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
 
 def run_experiment():
-        # Experiment setup
-        mlflow.set_tracking_uri("http://mlflow:5000")
-        mlflow.set_experiment("iris_experiment")
+    # Experiment setup
+    mlflow.set_tracking_uri("http://mlflow:5000")
+    mlflow.set_experiment("iris_experiment")
 
     with mlflow.start_run() as run:
         # Prepare data

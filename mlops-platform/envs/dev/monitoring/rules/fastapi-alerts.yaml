@@ -42,7 +42,7 @@ spec:
         severity: warning
       annotations:
         summary: "TEST: FastAPI 5xx error rate > 0%"
-        description: "테스트용 알람입니다."
+        description: "This is a test alert."
 
     - alert: FastAPIP95LatencyHigh_TEST
       expr: |
@@ -55,4 +55,4 @@ spec:
         severity: warning
       annotations:
         summary: "TEST: FastAPI p95 latency > 10ms"
-        description: "테스트용 알람입니다."
+        description: "This is a test alert."

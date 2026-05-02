@@ -12,7 +12,7 @@ def load_model_by_alias(alias: str):
         model = mlflow.pyfunc.load_model(model_uri)
         version_info = client.get_model_version_by_alias(settings.model_name, alias)
 
-        logger.info(f"✅ 모델 로딩 성공: alias={alias}, version={version_info.version}")
+        logger.info(f"✅ Model loaded successfully: alias={alias}, version={version_info.version}")
         return {
             "model": model,
             "info": {
@@ -24,6 +24,6 @@ def load_model_by_alias(alias: str):
             }
         }
     except Exception as e:
-        logger.error(f"❌ 모델 로딩 실패: {e}")
-        send_slack_alert(f"❌ 모델 로딩 실패: alias={alias}, {e}")
+        logger.error(f"❌ Model loading failed: {e}")
+        send_slack_alert(f"❌ Model loading failed: alias={alias}, {e}")
         return None

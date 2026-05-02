@@ -29,7 +29,7 @@ spec:
         automated:
           prune: true
           selfHeal: true
-      # 🔽 Multi-source: Helm chart + values file repo(ref)
+      # 🔽 Multi-source: Helm chart + values file repo (ref)
       sources:
         - repoURL: 'https://grafana.github.io/helm-charts'
           chart: loki

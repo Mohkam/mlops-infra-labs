@@ -5,9 +5,9 @@ airflow:
     airflow:
       tag: v1.3.1
 
-  # 기준값: 환경별 airflow 도메인
+  # Baseline value: environment-specific Airflow domain
   global:
-    airflowHost: airflow.prod  # ⬅️ 모든 host 관련 값의 기준값
+    airflowHost: airflow.prod  #⬅️ Baseline for all host-related values
 
   dags:
     gitSync:
@@ -20,23 +20,23 @@ airflow:
       rev: HEAD
       sshKeySecret: airflow-git-ssh-secret
 
-  # Airflow config 직접 정의 (공식 Helm Chart의 config 블록)
+  # Define Airflow config directly (the Helm chart config block)
   config:
     AIRFLOW__WEBSERVER__WEB_SERVER_BASE_URL:
-      value: "http://airflow.prod"  # ⬅️ global.airflowHost 기준값
+      value: "http://airflow.prod"  # ⬅️ Baseline value for global.airflowHost
 
   apiSecretKeySecretName: airflow-prod-api-secret-key
   jwtSecretName: airflow-prod-jwt-secret
   apiSecretKey: ~
   jwtSecret: ~
 
-  # Fernet Key / Metadata DB 관련 시크릿
+  # Fernet key / metadata DB related secret
   fernetKeySecretName: airflow-fernet-prod-secret
 
   data:
     metadataSecretName: airflow-db-prod-secret
 
-  # Scheduler 설정 (Anchor 정의)
+  # Scheduler settings (anchor definition)
   scheduler: &prod_scheduler
     env:
       - name: RELOAD_SECRET_TOKEN
@@ -87,7 +87,7 @@ airflow:
         mountPath: /models
         readOnly: false
 
-  # Workers / DAG Processor 에 동일 anchor 사용
+  # Use the same anchor for Workers / DAG Processor
   workers: *prod_scheduler
   dagProcessor: *prod_scheduler
 
