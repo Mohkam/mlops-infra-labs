@@ -17,7 +17,7 @@ data:
         isDefault: false
         jsonData:
           derivedFields:
-            # 예: traceID 필드가 있으면 Tempo 연동 시 사용
+            # Example: Use Tempo integration if traceID field exists
             - matcherRegex: "trace_id=(\\w+)"
               name: "traceID"
               url: "$${__value.raw}"

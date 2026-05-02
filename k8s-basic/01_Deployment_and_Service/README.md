@@ -1,42 +1,42 @@
 # ☸️ Kubernetes Basic Lab - Nginx Deployment & Service
 
-## ✅ 목표
+## ✅ Objectives
 
-- Minikube 환경에서 Kubernetes 리소스 실습
-- Nginx 웹 서버를 Deployment로 배포하고 NodePort로 노출
+- Practice Kubernetes resources in a Minikube environment
+- Deploy an Nginx web server as a Deployment and expose it via NodePort
 
-## 📁 구성 파일
+## 📁 Configuration Files
 
-| 파일명 | 설명 |
-|--------|------|
-| `nginx-deployment.yaml` | Nginx Pod 2개를 생성하는 Deployment 정의 |
-| `nginx-service.yaml`    | 외부에서 접근 가능한 NodePort 서비스 정의 |
+| File | Description |
+|------|-------------|
+| `nginx-deployment.yaml` | Deployment that creates 2 Nginx Pods |
+| `nginx-service.yaml`    | NodePort service exposed externally |
 
-## 🛠️ 실행 명령어
+## 🛠️ Run Commands
 
 ```bash
-# 리소스 생성
+# Create resources
 kubectl apply -f nginx-deployment.yaml
 kubectl apply -f nginx-service.yaml
 
-# 배포 상태 확인
+# Check deployment status
 kubectl get all
 
-# 서비스 접속 (로컬 브라우저 or curl)
+# Access the service (local browser or curl)
 minikube service nginx-service
 curl $(minikube ip):30080
 ```
 
-## 🔍 확인 결과
-- Nginx welcome 페이지 출력 성공
-- kubectl logs, kubectl exec로 Pod 접근 가능
+## 🔍 Verification
+- Nginx welcome page served successfully
+- Pod access via `kubectl logs` and `kubectl exec` works
 
-## 🧹 리소스 정리
+## 🧹 Cleanup
 
 ```bash
 kubectl delete -f .
 ```
 
-## 🧩 기타 참고
-- 클러스터: Minikube (Docker 드라이버)
+## 🧩 Additional Notes
+- Cluster: Minikube (Docker driver)
 - OS: Ubuntu 24.04 (VMware)

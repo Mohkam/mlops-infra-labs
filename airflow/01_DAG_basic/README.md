@@ -1,66 +1,72 @@
-# ☁️ Airflow Basic Lab - Docker 기반 로컬 실행
+# ☁️ Airflow Basic Lab - Local Execution with Docker
 
-## ✅ 목표
 
-- Docker 기반 로컬 환경에서 Airflow 설치 및 실행
-- 기본 DAG 작성 후 Web UI에서 실행 확인
+## ✅ Goal
 
----
-
-## 🧭 전체 흐름
-
-```
-[1단계] Docker & Docker Compose 설치 확인
-[2단계] 공식 Airflow Docker 예제 다운로드
-[3단계] docker compose 실행하여 Airflow 서비스 구동
-[4단계] Web UI 접속 및 샘플 DAG 실행
-```
+- Install and run Airflow in a local environment using Docker
+- Create a basic DAG and verify execution in the Web UI
 
 ---
 
-## 📁 구성 파일
 
-| 파일명 | 설명 |
+## 🧭 Overall Flow
+
+```
+[Step 1] Check Docker & Docker Compose installation
+[Step 2] Download official Airflow Docker example
+[Step 3] Run docker compose to start Airflow services
+[Step 4] Access Web UI and run sample DAG
+```
+
+---
+
+
+## 📁 File Structure
+
+| Filename | Description |
 | --- | --- |
-| docker-compose.yaml | Airflow 관련 서비스 정의 (webserver, scheduler 등) |
-| dags/hello_airflow.py | 샘플 DAG 예제 파일 |
-| .env | 사용자 권한 관련 환경 변수 (AIRFLOW_UID 등) |
+| docker-compose.yaml | Defines Airflow services (webserver, scheduler, etc.) |
+| dags/hello_airflow.py | Sample DAG example file |
+| .env | Environment variables for user permissions (AIRFLOW_UID, etc.) |
 
 ---
 
-## 🛠️ 실행 명령어
+
+## 🛠️ Run Commands
 
 ```bash
-# 공식 Docker Compose 예제 다운로드
+# Download official Docker Compose example
 curl -LfO 'https://airflow.apache.org/docs/apache-airflow/2.8.2/docker-compose.yaml'
 
-# 작업 디렉토리 생성
+# Create working directories
 mkdir -p ./dags ./logs ./plugins
 
-# 사용자 권한 변수 설정
+# Set user permission variable
 echo -e "AIRFLOW_UID=$(id -u)" > .env
 
-# 컨테이너 실행
+# Start containers
 docker-compose up -d
 ```
 
 ---
 
-## 🔍 확인 방법
 
-### 🔸 Web UI 접속
+## 🔍 How to Check
 
-- 브라우저에서 접속: [http://localhost:8080](http://localhost:8080/)
-- 기본 로그인 계정:
+### 🔸 Access Web UI
+
+- Open in browser: [http://localhost:8080](http://localhost:8080/)
+- Default login credentials:
     - ID: `airflow`
     - PW: `airflow`
 
 ---
 
-### 🔸 샘플 DAG 등록
+
+### 🔸 Register Sample DAG
 
 ```python
-# 파일명: dags/hello_airflow.py
+# Filename: dags/hello_airflow.py
 
 from airflow import DAG
 from airflow.operators.bash import BashOperator
@@ -84,17 +90,19 @@ with DAG(dag_id="hello_airflow",
     t1 >> t2
 ```
 
----
-
-## 📈 DAG 실행 확인
-
-1. Airflow UI → 왼쪽 메뉴에서 `hello_airflow` DAG 활성화
-2. 실행 버튼 클릭 → 실행 확인
-3. 로그 확인: Graph View 또는 Tree View 탭
 
 ---
 
-## 🧹 리소스 정리
+## 📈 Verify DAG Execution
+
+1. In Airflow UI → Enable `hello_airflow` DAG from the left menu
+2. Click the run button → Check execution
+3. Check logs: Graph View or Tree View tab
+
+---
+
+
+## 🧹 Clean Up Resources
 
 ```bash
 docker-compose down --volumes --remove-orphans
@@ -102,12 +110,13 @@ docker-compose down --volumes --remove-orphans
 
 ---
 
-## 🧩 기타 참고
+
+## 🧩 Additional Notes
 
 - OS: Ubuntu 24.04 (VMware)
-- 클러스터: 로컬 Docker 기반 (Minikube 아님)
-- 포트: Airflow UI는 기본적으로 8080 사용
-- 참고 명령어:
+- Cluster: Local Docker-based (not Minikube)
+- Port: Airflow UI uses 8080 by default
+- Reference commands:
 
 ```bash
 docker ps

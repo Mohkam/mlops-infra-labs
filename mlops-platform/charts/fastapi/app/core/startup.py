@@ -13,14 +13,14 @@ def register_startup_event(app: FastAPI):
         model_name = os.environ.get("MODEL_NAME")
 
         if not tracking_uri or not model_name:
-            logger.error("❌ 환경변수 누락: MLFLOW_TRACKING_URI / MODEL_NAME")
-            send_slack_alert("❌ [FastAPI] 환경변수 누락으로 모델 로딩 실패")
+            logger.error("❌ Missing env vars: MLFLOW_TRACKING_URI / MODEL_NAME")
+            send_slack_alert("❌ [FastAPI] model loading failed due to missing env vars")
             app.state.models = {}
-            # 모델이 없어도 /metrics는 노출
+            # expose /metrics even if model is missing
             try:
                 Instrumentator().instrument(app).expose(app, endpoint="/metrics", include_in_schema=False)
             except Exception as e:
-                logger.warning(f"⚠️ /metrics expose 실패(환경변수 누락 케이스): {e}")
+                logger.warning(f"⚠️ /metrics expose failed (missing env case): {e}")
             return
 
         app.state.models = {}

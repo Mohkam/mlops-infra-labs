@@ -6,11 +6,11 @@ import pandas as pd
 
 app = FastAPI()
 
-# MLflow 모델 로딩 (Production 버전)
+# Load MLflow model (Production stage)
 mlflow.set_tracking_uri("http://mlflow:5000")
 model = mlflow.pyfunc.load_model("models:/IrisModel/Production")
 
-# 🎯 입력 데이터 스키마 정의 (Pydantic)
+# 🎯 Define input data schema (Pydantic)
 class IrisInput(BaseModel):
     sepal_length: float
     sepal_width: float
@@ -19,21 +19,21 @@ class IrisInput(BaseModel):
 
 @app.get("/")
 def home():
-    return {"message": "FastAPI + MLflow 예측 API"}
+    return {"message": "FastAPI + MLflow prediction API"}
 
 @app.post("/predict")
 def predict(data: List[IrisInput]):
-    # 입력값을 DataFrame으로 변환
+    # Convert input values to a DataFrame
     input_df = pd.DataFrame([item.dict() for item in data])
-    
-    # 컬럼명을 ML 모델 학습 기준에 맞춰 변환 (필요 시)
+
+    # Rename columns to match model training schema (if needed)
     input_df.columns = [
         "sepal length (cm)",
         "sepal width (cm)",
         "petal length (cm)",
         "petal width (cm)"
     ]
-    
+
     preds = model.predict(input_df)
     return {"predictions": preds.tolist()}
 

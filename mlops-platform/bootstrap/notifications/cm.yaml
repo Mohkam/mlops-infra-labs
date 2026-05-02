@@ -8,14 +8,14 @@ data:
   context: |
     argocdUrl: https://argocd.local
 
-  # [webhook 서비스] Incoming Webhook을 사용
+  # [webhook service] use Incoming Webhook
   service.webhook.slack_webhook: |
     url: $slack-webhook
     headers:
     - name: Content-Type
       value: application/json
 
-  # 템플릿(웹훅 호출)
+  # template (webhook call)
   template.send-slack-status: |
     webhook:
       slack_webhook:
@@ -52,7 +52,7 @@ data:
             "text": "*[{{.app.metadata.name}}]* ⚠️ Health *Degraded*\n· Health: `{{.app.status.health.status}}`, Sync: `{{.app.status.sync.status}}`\n<{{.context.argocdUrl}}/applications/{{.app.metadata.name}}|Open in ArgoCD>"
           }
 
-  # 트리거: 위 webhook 템플릿으로 매핑
+  # trigger: map to the webhook template above
   trigger.on-sync-status-change: |
     - when: app.status.sync.status in ['Synced', 'OutOfSync']
       send: [send-slack-status]
@@ -65,7 +65,7 @@ data:
     - when: app.status.health.status == 'Degraded'
       send: [send-slack-degraded]
 
-  # 기본 구독: 채널이 아니라 "webhook 이름"으로
+  # default subscription: by "webhook name" rather than channel
   subscriptions: |
     - recipients:
         - slack_webhook

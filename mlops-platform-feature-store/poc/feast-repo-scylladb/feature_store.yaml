@@ -1,0 +1,18 @@
+project: feast_bench_scylladb
+provider: local
+
+registry:
+  path: /data/registry_scylladb.pb
+
+offline_store:
+  type: file
+
+online_store:
+  type: cassandra
+  hosts:
+    - scylladb
+  port: 9042
+  keyspace: feast_online_dev
+  protocol_version: 4
+
+entity_key_serialization_version: 2

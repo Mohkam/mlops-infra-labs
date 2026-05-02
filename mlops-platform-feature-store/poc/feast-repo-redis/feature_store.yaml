@@ -1,0 +1,14 @@
+project: feast_bench_redis
+provider: local
+
+registry:
+  path: /data/registry_redis.pb
+
+offline_store:
+  type: file
+
+online_store:
+  type: redis
+  connection_string: redis:6379
+
+entity_key_serialization_version: 2

@@ -16,6 +16,6 @@ spec:
     path: envs/dev
     directory:
       recurse: true
-      include: "namespaces.yaml"   # envs/dev/namespaces.yaml만 적용
+      include: "namespaces.yaml"   # Apply only envs/dev/namespaces.yaml
   syncPolicy:
     automated: { prune: true, selfHeal: true }

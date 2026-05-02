@@ -14,7 +14,7 @@ spec:
       labels:
         app: {{ .Release.Name }}
     spec:
-      # NFS(root_squash) 대비: Pod 레벨 Security Context
+      # For NFS(root_squash): Pod-level Security Context
       securityContext:
         runAsUser: {{ default 2001 .Values.podSecurityContext.runAsUser }}
         runAsGroup: {{ default 2001 .Values.podSecurityContext.runAsGroup }}

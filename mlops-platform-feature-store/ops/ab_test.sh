@@ -1,13 +1,13 @@
 #!/bin/bash
-# ab_test.sh — A/B/Canary/Blue-Green 분포 검증
-# 사용: ./ab_test.sh [N]  (기본 N=200)
+# ab_test.sh — A/B/Canary/Blue-Green distribution verification
+# Usage: ./ab_test.sh [N]  (default N=200)
 set -euo pipefail
 
 N=${1:-200}
 URL=${FASTAPI_URL:-"https://fastapi.local"}
 PAYLOAD='{"data": [[5.1, 3.5, 1.4, 0.2]]}'
 
-echo "🔍 A/B·Canary·Blue-Green 분포 확인 (${N}건)"
+echo "🔍 Verifying A/B·Canary·Blue-Green distribution (${N} cases)"
 : > ab_test_result.log
 for i in $(seq 1 $N); do
   id="client_$i"
@@ -21,4 +21,4 @@ done
 count_B=$(grep -c "→ B" ab_test_result.log || true)
 count_A=$((N - count_B))
 ratio=$((count_B * 100 / N))
-echo "📊 결과: A=${count_A}, B=${count_B} (B=${ratio}%)"
+echo "📊 Results: A=${count_A}, B=${count_B} (B=${ratio}%)

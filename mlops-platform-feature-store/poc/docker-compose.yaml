@@ -1,0 +1,45 @@
+services:
+  scylladb:
+    image: scylladb/scylla:5.4
+    container_name: scylladb
+    command: --smp 1 --memory 512M --overprovisioned 1
+    ports:
+      - "9042:9042"
+    healthcheck:
+      test: ["CMD-SHELL", "cqlsh -e 'SELECT now() FROM system.local'"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 60s
+
+  redis:
+    image: redis:7.2-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  feast-bench:
+    build:
+      context: .
+      dockerfile: Dockerfile.feast
+    container_name: feast-bench
+    depends_on:
+      scylladb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./feast-repo-redis:/feast-repo-redis
+      - ./feast-repo-scylladb:/feast-repo-scylladb
+      - ./scripts:/scripts
+      - ./data:/data
+      - ./results:/results
+    environment:
+      SCYLLADB_HOST: scylladb
+      REDIS_HOST: redis
+    command: ["python", "/scripts/run_benchmark.py"]

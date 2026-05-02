@@ -23,7 +23,7 @@ spec:
             backend:
               service:
                 name: {{ $.Values.service.name }}
-                # 존재하지 않는 포트로 라우팅 → 외부 502/404
+                # Route to a non-existent port → external 502/404
                 port:
                   number: 65535
 {{- end }}

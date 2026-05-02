@@ -19,7 +19,7 @@ metadata:
   name: fastapi-logs-pvc-dev
   namespace: fastapi-dev
 spec:
-  storageClassName: ""        # NFS 직접 바인딩이므로 비움
+  storageClassName: ""        # left empty because NFS is directly bound
   selector:
     matchLabels:
       pv: fastapi-logs-dev

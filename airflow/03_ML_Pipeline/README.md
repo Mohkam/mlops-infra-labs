@@ -1,77 +1,81 @@
 # 🛠️ Airflow Lab - ML Pipeline Dags
 
-## ✅ 목표
+## ✅ Goal
 
-- Airflow DAG으로 머신러닝 학습 흐름 시뮬레이션
-- 데이터 로딩 → 모델 학습 → 모델 저장의 흐름 구성
-- XCom을 통해 Task 간 결과 전달
+- Simulate a machine learning training flow with Airflow DAG
+- Structure the flow: data loading → model training → model saving
+- Pass results between tasks using XCom
 
 ---
 
-## 📁 구성 파일
 
-| 파일명 | 설명 |
+## 📁 File Structure
+
+| Filename | Description |
 | --- | --- |
-| ml_simulation.py | DAG 정의 파일 (dags/ 디렉토리에 위치해야 함) |
+| ml_simulation.py | DAG definition file (should be placed in dags/ directory) |
 
 ---
 
-## 🛠️ 실행 명령어
+
+## 🛠️ Run Commands
 
 ```bash
-# DAG 파일 작성
+# Write the DAG file
 nano dags/ml_simulation.py
 
-# Airflow 웹서버 및 스케줄러 실행 확인
+# Check Airflow webserver and scheduler are running
 docker-compose up -d
 ```
 
 ---
 
-## 🔧 DAG 코드 구성 요약
 
-- `load_data` → "가상의 데이터 로딩" 메시지 출력 및 경로 반환
-- `train_model` → 전달받은 데이터 경로 출력 후 "모델 학습 완료" 메시지 출력
-- `save_model` → 전달받은 모델 경로 출력 후 "모델 저장 완료" 메시지 출력
+## 🔧 DAG Code Structure Summary
 
----
-
-## 🔍 확인 방법
+- `load_data` → Prints "Loading fake data" message and returns path
+- `train_model` → Prints received data path and "Model training complete" message
+- `save_model` → Prints received model path and "Model saving complete" message
 
 ---
 
-1. 브라우저에서 Airflow UI 접속 → [http://localhost:8080](http://localhost:8080/)
-2. DAG 목록에서 `ml_simulation` ON
-3. ▶ 클릭하여 실행
-4. 각 Task의 로그 확인 (UI 또는 CLI)
 
-| Task | 로그 메시지 |
+## 🔍 How to Check
+
+---
+
+1. Access Airflow UI in browser → [http://localhost:8080](http://localhost:8080/)
+2. Turn ON `ml_simulation` in the DAG list
+3. Click ▶ to run
+4. Check logs for each Task (UI or CLI)
+
+| Task | Log Message |
 | --- | --- |
-| load_data | 📥 데이터 로딩 완료 (가상) |
-| train_model | 🧪 데이터 경로: /tmp/fake_data.csv  (🚀 모델 학습 완료 (가상)) |
-| save_model | 💾 모델 저장 경로: /tmp/fake_model.pkl   (✅ 저장 완료 (가상)) |
+| load_data | 📥 Data loading complete (fake) |
+| train_model | 🧪 Data path: /tmp/fake_data.csv  (🚀 Model training complete (fake)) |
+| save_model | 💾 Model save path: /tmp/fake_model.pkl   (✅ Save complete (fake)) |
 
 ---
 
-## 🧹 리소스 정리
+## 🧹 Cleanup
 
-- DAG 파일 삭제 시, Airflow에서 DAG 사라짐
-- (실제 리소스 없음 – 시뮬레이션용)
+- Removing the DAG file will remove the DAG from Airflow
+- (No real external resources used — simulation only)
 
 ---
 
-## 🧩 실무 팁
+## 🧩 Practical Tips
 
-| 실제 단계 | 구현 방법 |
+| Real-world Step | Implementation |
 | --- | --- |
-| 데이터 수집 | S3 / DB에서 CSV, Parquet 등 로딩 |
-| 모델 학습 | sklearn / PyTorch / XGBoost 등 |
-| 결과 저장 | 모델 파일을 Registry / S3로 업로드 |
-| 메트릭 공유 | XCom / MLflow 사용하여 전달 |
+| Data ingestion | Load CSV/Parquet from S3 / DB |
+| Model training | Use sklearn / PyTorch / XGBoost, etc. |
+| Persist results | Upload model files to Registry / S3 |
+| Share metrics | Use XCom / MLflow to pass metrics |
 
 ---
 
-## 🔧 MLOps 실전 연결
+## 🔧 MLOps Integration Next Steps
 
-- 이 DAG 흐름은 이후 MLflow Tracking, Slack 알림, Kubeflow 연동 등으로 확장 가능
-- 실무형 MLOps 파이프라인 자동화의 첫 걸음
+- This DAG pattern can be extended with MLflow Tracking, Slack notifications, Kubeflow integration, and more.
+- A first step towards practical MLOps pipeline automation.

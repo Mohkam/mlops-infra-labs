@@ -1,12 +1,12 @@
 FROM apache/airflow:2.8.1-python3.10
 
-# 환경 변수 설정
+# Set environment variables
 ENV AIRFLOW_HOME=/opt/airflow
 
-# Airflow 실행 사용자로 전환
+# Switch to the Airflow runtime user
 USER airflow
 
-# 필요한 추가 패키지 설치 (mlflow, scikit-learn 등)
+# Install additional Python packages (mlflow, scikit-learn, pandas)
 RUN pip install --no-cache-dir \
     mlflow \
     scikit-learn \

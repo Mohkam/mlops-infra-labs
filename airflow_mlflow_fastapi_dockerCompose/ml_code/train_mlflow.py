@@ -7,28 +7,27 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
 
 def run_experiment():
-    # 실험 세팅
-    mlflow.set_tracking_uri("http://mlflow:5000")
-    mlflow.set_experiment("iris_experiment")
+        # Experiment setup
+        mlflow.set_tracking_uri("http://mlflow:5000")
+        mlflow.set_experiment("iris_experiment")
 
     with mlflow.start_run() as run:
-        # 데이터 준비
+        # Prepare data
         data = load_iris()
         X, y = data.data, data.target
 
-        # 모델 학습
+        # Train model
         model = RandomForestClassifier(n_estimators=100, random_state=42)
         model.fit(X, y)
         preds = model.predict(X)
 
-        # 메트릭 계산
+        # Compute metrics
         acc = accuracy_score(y, preds)
 
-        # 로깅
+        # Logging to MLflow
         mlflow.log_param("n_estimators", 100)
         mlflow.log_metric("accuracy", acc)
         mlflow.sklearn.log_model(model, artifact_path="model", registered_model_name="IrisModel")
-        #mlflow.sklearn.log_model(model, artifact_path="model")
 
         print(f"✅ Run ID: {run.info.run_id}, Accuracy: {acc}")
 

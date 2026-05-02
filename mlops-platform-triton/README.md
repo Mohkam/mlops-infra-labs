@@ -1,21 +1,20 @@
 # 🚀 Triton Serving Platform – GitOps · Explicit Control · Alerting
 
-> “모델 서빙을 ‘배포 이벤트’가 아니라 ‘검증된 상태 전이’로 운영한다.”
-> 
+> “Operate model serving as a 'validated state transition', not a 'deployment event'.”
 
-이 디렉터리는 **Triton Inference Server를 GitOps 기반 운영형 서빙 플랫폼**으로 구성한 구현입니다.
+This directory contains an implementation that configures **Triton Inference Server as a GitOps-based production serving platform**.
 
-모델은 **자동 로딩되지 않으며**, 검증 체인을 통과한 경우에만 **explicit load**로 운영에 반영됩니다.
+Models are **not auto-loaded**; they are applied to production via **explicit load** only after passing the verification chain.
 
 ---
 
 ## 🎯 What this Triton setup proves
 
-- Triton을 **항상 떠 있는 Serving Plane**으로 유지
-- 모델 변경은 **재배포 없이 explicit load/unload**로만 제어
-- **MLflow → Airflow → Triton** 단일 배포 체인
-- dev/prod 완전 분리 (namespace / storage / rules / alerts)
-- **모델 실행 관점(latency/error)** 기준의 운영 알럿
+- Keep Triton as an **always-on Serving Plane**
+- Control model changes only via **explicit load/unload without redeploys**
+- Single deployment chain: **MLflow → Airflow → Triton**
+- Strict dev/prod separation (namespaces / storage / rules / alerts)
+- Operational alerts based on **model execution metrics (latency / errors)**
 
 ---
 
@@ -44,30 +43,30 @@ flowchart TB
 ### 1. Explicit Model Control
 
 - `model-control-mode=explicit`
-- 모델 디렉터리가 생겨도 **자동 로딩 ❌**
-- 운영 반영 조건:
-    1. materialize 성공
-    2. load 성공
-    3. ready 확인
-    4. smoke inference 통과
-    5. `current.json` commit
+- Model directories do not trigger **automatic loading ❌**
+- Conditions for applying to production:
+  1. materialize succeeded
+  2. load succeeded
+  3. readiness confirmed
+  4. smoke inference passed
+  5. `current.json` committed
 
 ---
 
 ### 2. Single Source of Truth
 
-- `current.json` = **운영 중인 모델의 단일 기준**
-- 실패한 모델은 삭제하지 않고:
-    - `.failed_<version>` 으로 격리
-    - 재현 / 원인 분석 가능
+- `current.json` = **single source of truth for the active model**
+- Keep failed models instead of deleting:
+  - isolate under `.failed_<version>`
+  - enables reproduction and root-cause analysis
 
 ---
 
 ### 3. GitOps First
 
-- Triton 자체는 GitOps로 **항상 running**
-- 모델 변경은 GitOps가 아니라 **Control Plane(Airflow)** 에서 수행
-- 배포와 서빙의 책임을 분리
+-- Triton itself is managed via GitOps and remains **always running**
+- Model changes are performed by the **Control Plane (Airflow)**, not GitOps
+- Separate responsibilities: deployment vs serving
 
 ---
 
@@ -81,9 +80,9 @@ charts/triton/
 │   ├── service.yaml# ClusterIP
 │   └── serviceMonitor.yaml# Prometheus scrape
 └── values/
-    ├── base.yaml# 공통 설정
-    ├── dev.yaml# dev 리소스/옵션
-    └── prod.yaml# prod 리소스/옵션
+    ├── base.yaml# common settings
+    ├── dev.yaml# dev resources / options
+    └── prod.yaml# prod resources / options
 
 ```
 
@@ -98,7 +97,7 @@ apps/
 ops/storage/triton/
 ├── dev/
 │   ├── pv-pvc.yaml# Triton model-repo
-│   └── pv-pvc-airflow.yaml# Airflow → Triton 공유
+│   └── pv-pvc-airflow.yaml# Airflow → Triton shared storage
 └── prod/
     ├── pv-pvc.yaml
     └── pv-pvc-airflow.yaml
@@ -135,10 +134,10 @@ flowchart LR
 - `nv_inference_request_failure`
 - `nv_inference_request_duration_us`
 
-> Triton 기본 latency 메트릭은 histogram이 아니므로
-> 
-> 
-> **p95 대신 mean latency 기반** 운영 알럿을 사용합니다.
+> The default Triton latency metric is not a histogram.
+
+
+**Use mean-latency-based operational alerts instead of p95.**
 > 
 
 ---
@@ -147,8 +146,8 @@ flowchart LR
 
 - **High Mean Latency**
 - **High Error Rate**
-- dev/prod namespace 기준 완전 분리
-- Alertmanager **null default** + regex routing
+ - Strict separation by dev/prod namespaces
+ - Alertmanager uses **null default** plus regex routing
 
 ---
 
@@ -160,7 +159,7 @@ flowchart LR
 - Pending requests
 - Pod health
 
-> 알럿 이후 30초 내 판단을 목표로 설계됨
+> Designed with a goal of responding within 30 seconds after an alert
 > 
 
 ---
@@ -170,18 +169,19 @@ flowchart LR
 | Category | Rule |
 | --- | --- |
 | Load Control | explicit only |
-| Rollback | DAG 기반, 재배포 없음 |
-| Storage | dev/prod path 분리 |
-| Metrics | model execution 기준 |
+| Rollback | DAG-based, no redeploys |
+| Storage | dev/prod path separation |
+| Metrics | model-execution focused |
 | Alerts | namespace regex routing |
-| GitOps | infra only, model 제외 |
+| GitOps | infra-only, models excluded |
 
 ---
 
 ## 🌱 Future Expansion
 
-- GPU 기반 Triton (TensorRT / ONNX Runtime)
-- Gateway 계층(Nginx/Envoy) + HTTP error 알럿 분리
+- GPU-based Triton (TensorRT / ONNX Runtime)
+ - GPU-based Triton (TensorRT / ONNX Runtime)
+ - Gateway layer (Nginx/Envoy) + separate HTTP error alerts
 - Canary / Shadow traffic
-- Triton gRPC 기반 서빙
-- ScyllaDB 기반 low-latency feature serving
+- Triton gRPC-based serving
+- ScyllaDB-based low-latency feature serving

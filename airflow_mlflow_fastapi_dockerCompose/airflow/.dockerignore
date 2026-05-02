@@ -1,9 +1,9 @@
-# Python 불필요 파일
+# Unnecessary Python files
 __pycache__/
 *.py[cod]
 *.pyo
 
-# 환경 변수
+# Environment variables
 .env
 
 # Git/IDE
@@ -11,14 +11,14 @@ __pycache__/
 .vscode/
 .idea/
 
-# MLflow 로그 디렉토리 (무조건 제외!)
+# MLflow log directory (always exclude!)
 mlruns/
 
-# Jupyter, 기타
+# Jupyter, others
 .ipynb_checkpoints/
 *.ipynb
 
-# 로그, 캐시
+# Logs, cache
 *.log
 logs/
 *.db

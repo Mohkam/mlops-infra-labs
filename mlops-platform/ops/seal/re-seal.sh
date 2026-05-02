@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 # ops/seal/re-seal.sh
-# 사용법:
+# Usage:
 #   bash ops/seal/re-seal.sh dev
 #   SHOW_DIFF=1 bash ops/seal/re-seal.sh prod
-# 옵션:
-#   INCLUDE_BOOTSTRAP=1  # bootstrap/notifications까지 같이 처리
-#   DRY_RUN=1            # 실행 대신 계획만 출력
+# Options:
+#   INCLUDE_BOOTSTRAP=1  # include bootstrap/notifications during processing
+#   DRY_RUN=1            # dry-run: print plan only
 
 set -euo pipefail
 
@@ -21,20 +21,20 @@ INCLUDE_BOOTSTRAP="${INCLUDE_BOOTSTRAP:-0}"
 need(){ command -v "$1" >/dev/null 2>&1 || { echo "❌ need $1"; exit 1; }; }
 need kubectl; need kubeseal; need yq; need git; command -v openssl >/dev/null || true
 
-# 현재 컨트롤러 공개키 지문(커밋 메시지 참고용)
+# Current controller public key fingerprint (for commit message reference)
 CERT="/tmp/ss-cert.pem"
 kubeseal --controller-namespace "$SS_NS" --controller-name "$SS_CTL" --fetch-cert > "$CERT"
 FPR=$(openssl x509 -in "$CERT" -noout -fingerprint -sha256 | sed 's/^.*=//')
 echo "[info] controller fingerprint: $FPR"
 echo "[info] ENV=$ENV DRY_RUN=$DRY_RUN INCLUDE_BOOTSTRAP=$INCLUDE_BOOTSTRAP"
-[[ -d "$TARGET_DIR" ]] || echo "⚠️  $TARGET_DIR 디렉터리가 없습니다(계속 진행)."
+[[ -d "$TARGET_DIR" ]] || echo "⚠️  $TARGET_DIR directory not found (continuing)."
 
 mapfile -d '' FILES < <(find "$TARGET_DIR" -type f -name '*.yaml' -print0 2>/dev/null || true)
 echo "[info] sealed files to process: ${#FILES[@]}"
 
 reseal_file () {
   local f="$1"
-  # name/ns 추출
+  # extract name/ns
   local name ns scope comp
   name=$(yq -r '.metadata.name // .spec.template.metadata.name' "$f")
   ns=$(yq -r '.metadata.namespace // .spec.template.metadata.namespace' "$f")
@@ -43,23 +43,23 @@ reseal_file () {
   else
     scope=""
   fi
-  # ns 추론 (envs/<env>/sealed-secrets/<comp>/...)
+  # infer ns (envs/<env>/sealed-secrets/<comp>/...)
   if [[ -z "${ns:-}" || "$ns" == "null" ]]; then
     if [[ "$f" =~ /sealed-secrets/([^/]+)/ ]]; then
       comp="${BASH_REMATCH[1]}"
       ns="${comp}-${ENV}"
-      echo "[hint] ns 추론: $f → $ns"
+      echo "[hint] inferred ns: $f → $ns"
     else
-      echo "⚠️  $f: namespace를 찾을 수 없어 건너뜀."; return 0
+      echo "⚠️  $f: namespace not found; skipping."; return 0
     fi
   fi
   if [[ -z "${name:-}" || "$name" == "null" ]]; then
-    echo "⚠️  $f: metadata.name 없음. 건너뜀."; return 0
+    echo "⚠️  $f: metadata.name missing. skipping."; return 0
   fi
   echo "[reseal] ns=$ns name=$name file=$f scope=${scope:-default}"
 
   if ! kubectl -n "$ns" get secret "$name" >/dev/null 2>&1; then
-    echo "⚠️  $ns/$name: 클러스터 Secret 없음 → 재발급/평문 필요. 건너뜀."
+    echo "⚠️  $ns/$name: cluster Secret missing → reissue/plaintext required. skipping."
     return 0
   fi
 
@@ -86,12 +86,12 @@ for f in "${FILES[@]}"; do
   reseal_file "$f"
 done
 
-# 2) (옵션) notifications bootstrap 포함
+# 2) (Optional) Include notifications bootstrap
 if [[ "$INCLUDE_BOOTSTRAP" == "1" ]]; then
   BOOT_DIR="$ROOT/bootstrap/notifications"
-  PLAIN="$BOOT_DIR/argocd-notifications-secret.yaml"   # 있으면 평문
+  PLAIN="$BOOT_DIR/argocd-notifications-secret.yaml"   # plaintext if present
   SEALED="$BOOT_DIR/secret-sealed.yaml"
-  echo "[info] INCLUDE_BOOTSTRAP=1 → $SEALED 갱신 시도"
+  echo "[info] INCLUDE_BOOTSTRAP=1 → attempting to refresh $SEALED"
   if [[ "$DRY_RUN" != "1" ]]; then
     if [[ -f "$PLAIN" ]]; then
       kubeseal --controller-namespace "$SS_NS" --controller-name "$SS_CTL" \
@@ -101,7 +101,7 @@ if [[ "$INCLUDE_BOOTSTRAP" == "1" ]]; then
         | kubeseal --controller-namespace "$SS_NS" --controller-name "$SS_CTL" \
                    --format yaml > "$SEALED"
     else
-      echo "⚠️  argocd/argocd-notifications-secret 없음. bootstrap 건너뜀."
+      echo "⚠️  argocd/argocd-notifications-secret not found. Skipping bootstrap."
     fi
   fi
   [[ "$SHOW_DIFF" == "1" ]] && git --no-pager diff -- "$SEALED" || true
@@ -114,4 +114,4 @@ if [[ "$DRY_RUN" != "1" ]]; then
 fi
 
 echo "✅ done. (ENV=$ENV, DRY_RUN=$DRY_RUN, INCLUDE_BOOTSTRAP=$INCLUDE_BOOTSTRAP)"
-echo "→ 필요 시: git push"
+echo "→ If needed: git push"

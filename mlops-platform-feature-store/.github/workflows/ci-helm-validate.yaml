@@ -29,7 +29,7 @@ jobs:
 
     env:
       KUBE_VERSION: "1.30.0"
-      # 3rd-party kinds는 스키마 검증에서 스킵(ArgoCD, cert-manager, SealedSecret 등)
+      # 3rd-party kinds are skipped in schema validation (e.g., ArgoCD, cert-manager, SealedSecret, etc.)
       SKIP_KINDS: "Application,ApplicationSet,AppProject,SealedSecret,Certificate,CertificateRequest,Issuer,ClusterIssuer,Order,Challenge"
 
     steps:
@@ -81,7 +81,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p /tmp/rendered
-          CHART="charts/${{ matrix.chart }}"
+          chART="charts/${{ matrix.chart }}"
           OUT="/tmp/rendered/${{ matrix.chart }}-${{ matrix.env }}.yaml"
           NS="${{ matrix.chart }}-${{ matrix.env }}"
 
@@ -114,7 +114,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          # sealed-secrets는 제외하고 env/*.yaml만 검사
+          # sealed-secrets are excluded, and only env/*.yaml is inspected
           mapfile -t FILES < <(find "envs/${{ matrix.env }}" -type f -name '*.yaml' ! -path "*/sealed-secrets/*")
           if (( ${#FILES[@]} )); then
             echo "Validating ${#FILES[@]} files under envs/${{ matrix.env }}"

@@ -1,17 +1,17 @@
-# 실행 엔진 설정
+# Executor settings
 executor: KubernetesExecutor
 
-# 이미지 설정
+# Image settings
 images:
   airflow:
-    repository: hoizz/airflow-custom  # 커스텀 이미지
-    tag: v5-mlflow-20240712           # 태그
+    repository: hoizz/airflow-custom  # custom image
+    tag: v5-mlflow-20240712           # tag
     pullPolicy: IfNotPresent
 
-# fernetKey 고정
+# Fixed fernetKey secret
 fernetKeySecretName: my-fernet-secret
 
-# DAG GitSync 설정 (GitOps 기반)
+# DAG GitSync settings (GitOps)
 dags:
   gitSync:
     enabled: true
@@ -23,14 +23,15 @@ dags:
     rev: HEAD
     sshKeySecret: airflow-git-ssh-secret
 
-# DB 연동 (외부 PostgreSQL 사용)
+# DB integration (use external PostgreSQL)
 postgresql:
-  enabled: false  # 내부 Postgres 비활성화
+  enabled: false  # disable internal Postgres
 
+# Data
 data:
-  metadataSecretName: airflow-db-secret  # Secret 안의 base64된 connection 값 참조
+  metadataSecretName: airflow-db-secret  # references base64 connection in Secret
 
-# Airflow 환경 설정
+# Airflow configuration
 config:
   AIRFLOW__CORE__LOAD_EXAMPLES:
     value: "False"
@@ -39,7 +40,7 @@ config:
   AIRFLOW__WEBSERVER__EXPOSE_CONFIG:
     value: "True"
 
-# 리소스 설정 (권장)
+# Resource recommendations
 scheduler:
   resources:
     requests:
@@ -84,7 +85,7 @@ dagProcessor:
       mountPath: /home/airflow/.aws
       readOnly: true
 
-# Ingress 설정 (Ingress Controller 기반 접근)
+# Ingress settings (via Ingress Controller)
 ingress:
   enabled: true
 
@@ -94,20 +95,20 @@ ingress:
     hosts:
       - name: airflow.local
     tls:
-      enabled: false  # 실무에서는 true + cert-manager 연동 필요
+      enabled: false  # in production set true and integrate cert-manager
 
-# Web UI 서비스 타입 설정
+# Web UI service type
 apiServer:
   service:
-    type: ClusterIP  # 외부 접근은 Ingress 경유
+    type: ClusterIP  # external access via Ingress
 
-# 로그 PVC 설정
+# Logs PVC settings
 logs:
   persistence:
     enabled: true
     existingClaim: airflow-logs-pvc
 
-# (선택) remote 로그 저장소 설정 (예: S3)
+# (optional) Configure remote log storage (e.g., S3)
 # config:
 #   AIRFLOW__LOGGING__REMOTE_LOGGING: "True"
 #   AIRFLOW__LOGGING__REMOTE_BASE_LOG_FOLDER: "s3://your-bucket-name/airflow-logs"

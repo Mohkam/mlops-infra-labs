@@ -7,14 +7,14 @@ spec:
   project: dev
   destination:
     server: https://kubernetes.default.svc
-    namespace: fastapi-dev          # PVC용 네임스페이스
+    namespace: fastapi-dev          # namespace for PVC
   source:
     repoURL: https://github.com/keonhoban/mlops-infra-gitops
     targetRevision: main
     path: ops/storage/fastapi-logs/dev
   syncPolicy:
     automated:
-      prune: false                  # PV 안전: prune 비활성 (삭제 방지)
+      prune: false                  # PV safety: disable prune (prevent deletion)
       selfHeal: true
     syncOptions:
       - CreateNamespace=true

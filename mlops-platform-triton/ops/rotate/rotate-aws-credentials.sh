@@ -2,7 +2,7 @@
 # ops/rotate/rotate-aws-credentials.sh
 set -euo pipefail
 
-# ===== 기본 파라미터 =====
+# ===== Default parameters =====
 ENV="${1:-dev}"                              # dev | prod
 REGION="${REGION:-ap-northeast-2}"
 SS_CTL="${SS_CTL:-sealed-secrets}"
@@ -12,51 +12,51 @@ ARGO_APP="${ENV}-secrets"
 info(){ echo "[$(date +%H:%M:%S)] $*"; }
 kseal(){ kubeseal --controller-name "$SS_CTL" --controller-namespace "$SS_NS" -o yaml; }
 
-# ===== 사전 점검 =====
+# ===== Pre-checks =====
 for bin in aws jq kubectl kubeseal git; do
-  command -v "$bin" >/dev/null || { echo "ERROR: $bin 필요"; exit 1; }
+  command -v "$bin" >/dev/null || { echo "ERROR: $bin required"; exit 1; }
 done
 
-# ===== ENV → 프로필 자동결정(외부에서 AWS_PROFILE_ROTATOR 주면 그 값 우선) =====
-: "${AWS_PROFILE_PREFIX:=rotator}"   # 접두어 바꾸고 싶으면 export AWS_PROFILE_PREFIX=myrotator
+# ===== ENV → Automatically determine profile (prioritize AWS_PROFILE_ROTATOR if provided externally) =====
+: "${AWS_PROFILE_PREFIX:=rotator}"   # change prefix via export AWS_PROFILE_PREFIX=myrotator
 if [[ -z "${AWS_PROFILE_ROTATOR:-}" ]]; then
   case "$ENV" in
     dev)  AWS_PROFILE_ROTATOR="${AWS_PROFILE_PREFIX}-dev"  ;;
     prod) AWS_PROFILE_ROTATOR="${AWS_PROFILE_PREFIX}-prod" ;;
-    *)    echo "❌ 지원하지 않는 ENV: $ENV (dev|prod)"; exit 1 ;;
+    *)    echo "❌ Unsupported ENV: $ENV (dev|prod)"; exit 1 ;;
   esac
 fi
 
-# ===== 레포 루트 고정 =====
+# ===== Fix repo root =====
 REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
 cd "$REPO_ROOT"
 APP_GIT_PATH="$REPO_ROOT/envs/${ENV}/sealed-secrets"
 mkdir -p "$APP_GIT_PATH/airflow" "$APP_GIT_PATH/fastapi" "$APP_GIT_PATH/mlflow" /root/backup
 
-# ===== AWS 호출 모드 결정 =====
-# 1) NEW_ID/NEW_SECRET 미제공 => IAM API로 새 키 생성(프로필 검증 필요)
-# 2) NEW_ID/NEW_SECRET 제공   => 주어진 값으로 진행(프로필 검증 없이도 가능)
+# ===== Decide AWS call mode =====
+# 1) If NEW_ID/NEW_SECRET not provided => create new key via IAM API (profile verification required)
+# 2) If NEW_ID/NEW_SECRET provided => use given values (no profile verification needed)
 USE_AWS_API=1
 if [[ -n "${NEW_ID:-}" && -n "${NEW_SECRET:-}" ]]; then
   USE_AWS_API=0
-  info "Use provided NEW_ID/NEW_SECRET (IAM API 호출 없이 진행)"
+  info "Use provided NEW_ID/NEW_SECRET (proceed without IAM API call)"
 fi
 
 AWS_CLI=(aws --profile "$AWS_PROFILE_ROTATOR")
 
-# ===== (API 모드일 때만) 프로필 사전 검증 =====
+# ===== (API mode only) Pre-verify profile =====
 if [[ "$USE_AWS_API" -eq 1 ]]; then
   if ! "${AWS_CLI[@]}" sts get-caller-identity >/dev/null 2>&1; then
-    echo "❌ AWS 프로필('$AWS_PROFILE_ROTATOR')로 STS 확인 실패"
-    echo "   아래 중 하나로 준비 후 재시도하세요:"
-    echo "   1) aws configure --profile $AWS_PROFILE_ROTATOR (액세스키/시크릿 등록)"
-    echo "   2) SSO/Assume-Role 등 조직 표준 방식으로 프로필을 구성"
-    echo "   3) 또는 NEW_ID/NEW_SECRET를 환경변수로 직접 전달하여 실행 (IAM API 건너뜀)"
+    echo "❌ STS check failed with AWS profile '$AWS_PROFILE_ROTATOR'"
+    echo "   Prepare one of the following and retry:"
+    echo "   1) aws configure --profile $AWS_PROFILE_ROTATOR (set access key/secret)"
+    echo "   2) Configure profile using SSO/Assume-Role per your org standards"
+    echo "   3) Or provide NEW_ID/NEW_SECRET as env vars to skip IAM API mode"
     exit 1
   fi
 fi
 
-# ===== 대상 IAM 사용자 / 구 키 파악 & 새 키 생성 (API 모드일 때만) =====
+# ===== Determine target IAM user / old key & create new key (API mode only) =====
 OLD_KEY_ID=""
 TARGET_USER="${TARGET_USER:-}"
 
@@ -75,7 +75,7 @@ if [[ "$USE_AWS_API" -eq 1 ]]; then
 
   COUNT="$("${AWS_CLI[@]}" iam list-access-keys --user-name "$TARGET_USER" | jq '.AccessKeyMetadata | length')"
   if [[ "$COUNT" -ge 2 ]]; then
-    echo "ERROR: ${TARGET_USER} 에 이미 키 2개 존재. 하나 비활성/삭제 후 재시도."; exit 1
+    echo "ERROR: ${TARGET_USER} already has 2 keys. Deactivate/delete one and retry."; exit 1
   fi
 
   NEW_JSON="$("${AWS_CLI[@]}" iam create-access-key --user-name "$TARGET_USER")"
@@ -87,10 +87,10 @@ if [[ "$USE_AWS_API" -eq 1 ]]; then
   umask 077; echo "$NEW_JSON" > "$BK"
   info "Backed up new key JSON -> $BK (600)"
 else
-  info "TARGET_USER 미사용(이미 발급된 자격증명 사용)"
+  info "Not using TARGET_USER (using provided credentials)"
 fi
 
-# ===== SealedSecret 생성/갱신 =====
+# ===== SealedSecret creation/update =====
 AF_FILE="$APP_GIT_PATH/airflow/sealed-aws-credentials-secret.yaml"
 cat > /tmp/aws.ini <<EOF_INI
 [default]
@@ -118,12 +118,12 @@ kubectl -n "mlflow-${ENV}" create secret generic aws-credentials-secret \
   --from-literal=AWS_DEFAULT_REGION="$REGION" \
   --dry-run=client -o yaml | kseal > "$MF_FILE"
 
-# ===== Git 커밋/푸시 =====
+# ===== Git commit/push =====
 git add "$AF_FILE" "$FA_FILE" "$MF_FILE"
 git commit -m "feat(${ENV}): rotate AWS credentials across airflow/fastapi/mlflow"
 git push
 
-## ===== ArgoCD 동기화 (선택) =====
+## ===== ArgoCD sync (optional) =====
 #if command -v argocd >/dev/null 2>&1; then
 #  if [[ -n "${ARGOCD_HOST:-}" && -n "${ARGOCD_USERNAME:-}" && -n "${ARGOCD_PASSWORD:-}" ]]; then
 #    argocd login "$ARGOCD_HOST" \
@@ -131,14 +131,14 @@ git push
 #      --insecure --grpc-web || true
 #  fi
 #  argocd app sync "$ARGO_APP" --grpc-web || {
-#    echo "HINT: 'argocd login <HOST> --username ... --password ... --insecure --grpc-web' 후"
-#    echo "      'argocd app sync ${ARGO_APP} --grpc-web' 실행하세요."
+#    echo "HINT: 'argocd login <HOST> --username ... --password ... --insecure --grpc-web' afterwards"
+#    echo "      'argocd app sync ${ARGO_APP} --grpc-web' to execute."
 #  }
 #fi
 
-# ===== 로컬 AWS credentials 업데이트(선택) =====
-: "${UPDATE_LOCAL:=1}"   # 1=업데이트 수행, 0=건너뜀
-PROFILE="$AWS_PROFILE_ROTATOR"      # default로 떨어지지 않도록 고정
+# ===== Update local AWS credentials (optional) =====
+: "${UPDATE_LOCAL:=1}"   # 1=perform update, 0=skip
+PROFILE="$AWS_PROFILE_ROTATOR"      # keep explicit to avoid default
 
 if [[ "$UPDATE_LOCAL" -eq 1 ]]; then
   CRED_FILE="${AWS_SHARED_CREDENTIALS_FILE:-$HOME/.aws/credentials}"
@@ -194,14 +194,14 @@ else
   info "Skipped local credentials update (UPDATE_LOCAL=0)"
 fi
 
-# ===== 적용 확인 =====
+# ===== Apply verification =====
 for ns in "airflow-${ENV}" "fastapi-${ENV}" "mlflow-${ENV}"; do
   rv="$(kubectl -n "$ns" get secret aws-credentials-secret -o jsonpath='{.metadata.resourceVersion}' 2>/dev/null || true)"
   echo "$ns resourceVersion=$rv"
 done
 
 if [[ -n "${OLD_KEY_ID:-}" ]]; then
-  info "서비스 정상 확인 후, 구 키(${OLD_KEY_ID:0:4}********${OLD_KEY_ID: -4}) Inactive→삭제하세요."
+  info "After verifying services are healthy, set old key (${OLD_KEY_ID:0:4}********${OLD_KEY_ID: -4}) Inactive → delete it."
 else
-  info "구 키 없음(or 제공 ID/SECRET 사용 모드)."
+  info "No old key (or using provided ID/SECRET mode)."
 fi

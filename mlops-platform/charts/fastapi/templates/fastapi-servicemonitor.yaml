@@ -9,10 +9,10 @@ metadata:
 spec:
   namespaceSelector:
     matchNames:
-      - {{ .Release.Namespace }}     # 같은 네임스페이스에서만 수집
+      - {{ .Release.Namespace }}     # Collect only from the same namespace
   selector:
     matchLabels:
-      app: {{ .Release.Name }}       # Service의 selector/labels와 일치
+      app: {{ .Release.Name }}       # Matches Service's selector/labels
   endpoints:
     - port: http
       path: {{ .Values.metrics.path }}

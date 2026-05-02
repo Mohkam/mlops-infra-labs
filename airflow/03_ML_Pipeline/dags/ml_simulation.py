@@ -6,19 +6,19 @@ from datetime import datetime
 import os
 
 def load_data():
-    print("📥 데이터 로딩 완료 (가상)")
+    print("📥 Data loading complete (simulated)")
     return {"data_path": "/tmp/fake_data.csv"}
 
 def train_model(**context):
     data = context['ti'].xcom_pull(task_ids='load_data')
-    print(f"🧪 데이터 경로: {data['data_path']}")
-    print("🚀 모델 학습 완료 (가상)")
+    print(f"🧪 Data path: {data['data_path']}")
+    print("🚀 Model training complete (simulated)")
     return {"model_path": "/tmp/fake_model.pkl"}
 
 def save_model(**context):
     model = context['ti'].xcom_pull(task_ids='train_model')
-    print(f"💾 모델 저장 경로: {model['model_path']}")
-    print("✅ 저장 완료 (가상)")
+    print(f"💾 Model save path: {model['model_path']}")
+    print("✅ Save complete (simulated)")
 
 with DAG(
     dag_id='ml_simulation',

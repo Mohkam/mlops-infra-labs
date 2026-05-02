@@ -4,10 +4,10 @@ from airflow import DAG
 from airflow.operators.python import PythonOperator
 from datetime import datetime
 import sys
-sys.path.append("/opt/airflow/ml_code")  # 경로 설정
+sys.path.append("/opt/airflow/ml_code")  # set module path
 
-from train_mlflow import run_experiment  # 학습 함수 import
-from promote_mlflow import promote_model # 승격 함수 import
+from train_mlflow import run_experiment  # import training function
+from promote_mlflow import promote_model  # import promotion function
 
 default_args = {
     'start_date': datetime(2023, 1, 1),
@@ -22,19 +22,20 @@ with DAG(
     tags=['ml', 'mlflow'],
 ) as dag:
 
-    # 모델 학습 + 등록
+    # Model training + registration
     train_task = PythonOperator(
-        task_id='run_training',
+        task_id='run_training', 
         python_callable=run_experiment,
     )
+    # Train model and register
 
-    # 최신 버전을 Production 스테이지로 Promote
+    # Promote the latest version to the Production stage
     promote_task = PythonOperator(
         task_id='promote_model_to_production',
         python_callable=promote_model,
     )
 
-    # 작업 순서 정의
+    # Define task order
     train_task >> promote_task
 
 

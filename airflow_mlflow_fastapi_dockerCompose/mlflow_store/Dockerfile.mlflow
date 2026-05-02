@@ -1,12 +1,12 @@
 FROM python:3.10-slim
 
-# 시스템 도구 설치
+# Install system tools
 RUN apt update && apt install -y curl sqlite3 git
 
-# MLflow 설치
+# Install MLflow
 RUN pip install mlflow[extras] scikit-learn
 
-# 작업 디렉토리
+# Working directory
 WORKDIR /mlflow
 
 CMD ["mlflow", "server", \

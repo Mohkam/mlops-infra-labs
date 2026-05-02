@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 # ops/seal/re-seal.sh
-# 사용법:
+# Usage:
 #   bash ops/seal/re-seal.sh dev
 #   SHOW_DIFF=1 bash ops/seal/re-seal.sh prod
-# 옵션:
-#   INCLUDE_BOOTSTRAP=1  # bootstrap/notifications까지 같이 처리
-#   DRY_RUN=1            # 실행 대신 계획만 출력
+# Options:
+#   INCLUDE_BOOTSTRAP=1  # Process up to bootstrap/notifications together
+#   DRY_RUN=1            # Output plan instead of execution
 
 set -euo pipefail
 
@@ -21,13 +21,13 @@ INCLUDE_BOOTSTRAP="${INCLUDE_BOOTSTRAP:-0}"
 need(){ command -v "$1" >/dev/null 2>&1 || { echo "❌ need $1"; exit 1; }; }
 need kubectl; need kubeseal; need yq; need git; command -v openssl >/dev/null || true
 
-# 현재 컨트롤러 공개키 지문(커밋 메시지 참고용)
+# Current controller public key fingerprint (for commit message reference)
 CERT="/tmp/ss-cert.pem"
 kubeseal --controller-namespace "$SS_NS" --controller-name "$SS_CTL" --fetch-cert > "$CERT"
 FPR=$(openssl x509 -in "$CERT" -noout -fingerprint -sha256 | sed 's/^.*=//')
 echo "[info] controller fingerprint: $FPR"
 echo "[info] ENV=$ENV DRY_RUN=$DRY_RUN INCLUDE_BOOTSTRAP=$INCLUDE_BOOTSTRAP"
-[[ -d "$TARGET_DIR" ]] || echo "⚠️  $TARGET_DIR 디렉터리가 없습니다(계속 진행)."
+[[ -d "$TARGET_DIR" ]] || echo "⚠️  $TARGET_DIR directory does not exist (continuing)."
 
 mapfile -d '' FILES < <(find "$TARGET_DIR" -type f -name '*.yaml' -print0 2>/dev/null || true)
 echo "[info] sealed files to process: ${#FILES[@]}"
@@ -48,9 +48,9 @@ reseal_file () {
     if [[ "$f" =~ /sealed-secrets/([^/]+)/ ]]; then
       comp="${BASH_REMATCH[1]}"
       ns="${comp}-${ENV}"
-      echo "[hint] ns 추론: $f → $ns"
+      echo "[hint] ns inferred: $f → $ns"
     else
-      echo "⚠️  $f: namespace를 찾을 수 없어 건너뜀."; return 0
+      echo "⚠️  $f: Unable to find namespace, skipping."; return 0
     fi
   fi
   if [[ -z "${name:-}" || "$name" == "null" ]]; then

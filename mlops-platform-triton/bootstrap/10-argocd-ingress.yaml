@@ -9,25 +9,25 @@ metadata:
     nginx.ingress.kubernetes.io/proxy-body-size: "10m"
     nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
 
-    # 접근 IP 화이트리스트  ➜ 사내망/집 IP로 제한
+    # Access IP whitelist  ➜ restrict to corporate/home IPs
     nginx.ingress.kubernetes.io/whitelist-source-range: "10.0.0.0/8,192.168.0.0/16"
 
-    # cert-manager로 TLS 자동 발급
+    # TLS issued automatically by cert-manager
     cert-manager.io/cluster-issuer: selfsigned-issuer
 spec:
   ingressClassName: nginx
   tls:
     - hosts:
-        - argocd.local                # FQDN으로 교체
-      secretName: argocd-tls          # 생성될 TLS Secret 이름
+        - argocd.local                # replace with your FQDN
+      secretName: argocd-tls          # name of TLS Secret to be created
   rules:
-    - host: argocd.local              # 위와 동일
+    - host: argocd.local              # same as above
       http:
         paths:
           - path: /
             pathType: Prefix
             backend:
               service:
-                name: argocd-server   # Helm 설치하면 기본으로 생기는 서비스명
+                name: argocd-server   # default service name created by Helm
                 port:
                   number: 443

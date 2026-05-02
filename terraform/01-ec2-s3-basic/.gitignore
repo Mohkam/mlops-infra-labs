@@ -1,4 +1,4 @@
-# Terraform 관련
+# Terraform files
 .terraform/
 terraform.tfstate
 terraform.tfstate.backup
@@ -6,8 +6,8 @@ terraform.tfvars
 .terraform.lock.hcl
 
 # SSH Key
-# keonho-key.pem   # 다른 경로에서의 관리가 권장됨 (ex. ~/.ssh/)
+# keonho-key.pem   # It's recommended to manage keys elsewhere (e.g. ~/.ssh/)
 
-# 기타
+# Misc
 *.swp
 *~

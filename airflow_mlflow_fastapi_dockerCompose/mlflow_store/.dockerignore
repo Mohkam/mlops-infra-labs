@@ -1,9 +1,9 @@
-# MLflow 저장 파일/디렉토리
+# MLflow stored files/directories
 mlruns/
 mlflow.db
 artifacts/
 
-# 캐시 / 로그
+# Cache / logs
 *.log
 *.db
 __pycache__/
@@ -13,6 +13,6 @@ __pycache__/
 .vscode/
 .idea/
 
-# 기타 노트북 캐시
+# Other notebook caches
 .ipynb_checkpoints/
 *.ipynb

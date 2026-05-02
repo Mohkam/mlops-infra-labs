@@ -1,15 +1,15 @@
-# MLflow 로그 디렉토리
+# MLflow log directory
 mlruns/
 
-# Python 관련
+# Python-related
 __pycache__/
 *.pyc
 *.pyo
 
-# 환경 변수 파일
+# Environment variable files
 .env
 
-# 기타 IDE
+# Other IDE files
 .vscode/
 .idea/
 

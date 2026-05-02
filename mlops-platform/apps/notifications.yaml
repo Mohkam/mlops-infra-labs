@@ -4,7 +4,7 @@ metadata:
   name: notifications
   namespace: argocd
   annotations:
-    # sealed-secrets 등 선행 리소스보다 늦게 적용하고 싶다면 (선택)
+    # If you want to apply sealed-secrets and other resources later (optional)
     argocd.argoproj.io/sync-wave: "1"
 spec:
   project: notifications
