@@ -1,14 +1,14 @@
-# Python venvs
-venv/
-.venv/
-**/venv/
+# Python virtual environments  
+venv/  
+.venv/  
+**/venv/  
 
-# Python cache
-__pycache__/
-*.pyc
+# Python cache  
+__pycache__/  
+*.pyc  
 
-# MLflow
-mlruns/
-mlartifacts/
-**/mlruns/
+# MLflow  
+mlruns/  
+mlartifacts/  
+**/mlruns/  
 **/mlartifacts/

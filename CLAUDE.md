@@ -47,5 +47,4 @@ All platforms follow the same directory layout:
 ```
 
 ## Notes
-- English terms such as `Airflow`, `MLflow`, `FastAPI`, `Helm`, `ArgoCD` are kept as-is.
-- Non-English terms are translated to English while preserving existing English content.
+- English terms such as `Airflow`, `MLflow`, `FastAPI`, `Helm`, `ArgoCD` are kept as-is.Non-English terms are translated to English while preserving existing English content.

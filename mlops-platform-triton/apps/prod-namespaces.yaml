@@ -16,6 +16,6 @@ spec:
     path: envs/prod
     directory:
       recurse: true
-      include: "namespaces.yaml"   # envs/prod/namespaces.yaml만 적용
+      include: "namespaces.yaml"   # Apply only envs/prod/namespaces.yaml
   syncPolicy:
     automated: { prune: true, selfHeal: true }
